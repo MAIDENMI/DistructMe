@@ -94,6 +94,8 @@ class DistractorApp:
             "https://media.giphy.com/media/JIX9t2j0ZTN9S/giphy.gif",  # cat typing
             "https://media.giphy.com/media/3oriO0OEd9QIDdllqo/giphy.gif",  # laughing cat
             "https://media.giphy.com/media/mlvseq9yvZhba/giphy.gif",  # cat laugh roll
+            # Local memes (add your meme file here)
+            "memes/tenor.gif",  # Your custom meme
         ]
         url = random.choice(meme_urls)
 
