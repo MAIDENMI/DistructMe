@@ -10,6 +10,7 @@ from processes.meme_popup import open_meme_popup
 from processes.media_link_opener import open_random_media
 from processes.number_game import NumberGame
 from tab_switch_detector import TabSwitchDetector
+from random_cycler import RandomDistractionCycler
 
 
 def _get_frontmost_app_name_mac() -> Optional[str]:
@@ -49,12 +50,15 @@ class DistractorApp:
     def __init__(self) -> None:
         self.root = tk.Tk()
         self.root.title("NGMI Distractor")
-        self.root.geometry("480x320")
+        self.root.geometry("480x400")
         self.manager = WindowsManager(self.root)
         self.number_game = NumberGame(self.manager)
         
         # Initialize tab switch detector
         self.tab_detector = TabSwitchDetector(on_tab_switch=self._on_tab_switch)
+        
+        # Initialize random distraction cycler
+        self.random_cycler = RandomDistractionCycler(self.manager, on_distraction=self._on_random_distraction)
 
         # Basic control panel
         tk.Label(self.root, text="NGMI Distractor", font=("Helvetica", 18, "bold")).pack(pady=8)
@@ -93,6 +97,34 @@ class DistractorApp:
             text="🚀 Speed Stream Now", 
             command=self.trigger_kai_cenat_popup,
             bg='#00D4AA',
+            fg='white',
+            font=("Helvetica", 10, "bold")
+        ).pack(side='left', padx=5)
+        
+        # Random cycling controls
+        cycle_frame = tk.Frame(self.root)
+        cycle_frame.pack(pady=8)
+        
+        tk.Label(cycle_frame, text="Random Cycling:", font=("Helvetica", 12, "bold")).pack()
+        
+        cycle_buttons = tk.Frame(cycle_frame)
+        cycle_buttons.pack(pady=4)
+        
+        self.cycle_btn = tk.Button(
+            cycle_buttons, 
+            text="🎪 Start Random Cycle", 
+            command=self.toggle_random_cycling,
+            bg='#9b59b6',
+            fg='white',
+            font=("Helvetica", 10, "bold")
+        )
+        self.cycle_btn.pack(side='left', padx=5)
+        
+        tk.Button(
+            cycle_buttons, 
+            text="🎯 Random Now", 
+            command=self.trigger_random_distraction,
+            bg='#e67e22',
             fg='white',
             font=("Helvetica", 10, "bold")
         ).pack(side='left', padx=5)
@@ -171,11 +203,33 @@ class DistractorApp:
         """Handle tab switch detection."""
         self.status_var.set(f"Tab switch detected! {len(tabs)} tabs open…")
         print(f"🔄 Tab switch detected! {len(tabs)} tabs currently open")
+        
+    def toggle_random_cycling(self) -> None:
+        """Toggle random distraction cycling on/off."""
+        if self.random_cycler.is_cycling():
+            self.random_cycler.stop_cycling()
+            self.cycle_btn.config(text="🎪 Start Random Cycle", bg='#9b59b6')
+            self.status_var.set("Random cycling stopped…")
+        else:
+            self.random_cycler.start_cycling(interval=6.0)
+            self.cycle_btn.config(text="🛑 Stop Random Cycle", bg='#e74c3c')
+            self.status_var.set("Random cycling started - memes, videos, GIFs, streams every 6s!")
+            
+    def trigger_random_distraction(self) -> None:
+        """Manually trigger a random distraction."""
+        self.status_var.set("Random distraction dispatched…")
+        self.random_cycler.trigger_manual_distraction()
+        
+    def _on_random_distraction(self, distraction_type: str, content: str) -> None:
+        """Handle random distraction callback."""
+        self.status_var.set(f"Random {distraction_type} triggered!")
+        print(f"🎯 Random {distraction_type}: {content}")
 
     # ---------------------------- Exit ---------------------------- #
     def _on_exit(self) -> None:
         try:
             self.tab_detector.stop_monitoring()
+            self.random_cycler.stop_cycling()
             self.manager.close_all()
         finally:
             self.root.destroy()
