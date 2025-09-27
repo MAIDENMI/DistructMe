@@ -1,6 +1,10 @@
 import tkinter as tk
 from typing import List, Tuple
+import sys
+import os
 
+# Add parent directory to path to import windows_manager
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from windows_manager import WindowsManager
 
 
@@ -88,3 +92,33 @@ class NumberGame:
         )
         tk.Label(win, text="7", font=("Helvetica", 72, "bold")).pack(expand=True)
         self.active_ids = [child_id]
+
+
+if __name__ == "__main__":
+
+    class DummyManager:
+        def get_screen_size(self):
+            root = tk.Tk()
+            root.withdraw()
+            sw = root.winfo_screenwidth()
+            sh = root.winfo_screenheight()
+            root.destroy()
+            return sw, sh
+
+        def create_window(self, title, width, height, x, y, window_type, topmost, resizable, on_close):
+            win = tk.Toplevel()
+            win.title(title)
+            win.geometry(f"{width}x{height}+{x}+{y}")
+            win.attributes("-topmost", topmost)
+            win.resizable(resizable, resizable)
+            win.protocol("WM_DELETE_WINDOW", lambda: (on_close(str(id(win))), win.destroy()))
+            return str(id(win)), win
+
+    root = tk.Tk()
+    root.withdraw()  # Hide main window
+
+    manager = DummyManager()
+    game = NumberGame(manager)
+    game.start()
+
+    tk.mainloop()
