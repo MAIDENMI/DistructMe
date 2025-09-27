@@ -23,7 +23,6 @@ class SmileyGame:
     def _on_child_closed(self, window_id: str) -> None:
         if window_id in self.active_ids:
             self.active_ids.remove(window_id)
-        # Don't do anything when windows are closed - just let them disappear
 
     def _spawn_window(self, title: str, x: int, y: int, w: int, h: int) -> None:
         child_id, win = self.manager.create_window(

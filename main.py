@@ -8,7 +8,7 @@ from windows_manager import WindowsManager
 from processes.ngmi_popup import open_ngmi_editor
 from processes.meme_popup import open_meme_popup
 from processes.media_link_opener import open_random_media
-from processes.number_game import NumberGame
+from processes.number_game import SmileyGame
 from tab_switch_detector import TabSwitchDetector
 
 
@@ -51,7 +51,7 @@ class DistractorApp:
         self.root.title("NGMI Distractor")
         self.root.geometry("480x320")
         self.manager = WindowsManager(self.root)
-        self.number_game = NumberGame(self.manager)
+        self.number_game = SmileyGame(self.manager)
         
         # Initialize tab switch detector
         self.tab_detector = TabSwitchDetector(on_tab_switch=self._on_tab_switch)
