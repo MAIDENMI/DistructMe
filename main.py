@@ -9,6 +9,7 @@ from processes.ngmi_popup import open_ngmi_editor
 from processes.meme_popup import open_meme_popup
 from processes.media_link_opener import open_random_media
 from processes.number_game import NumberGame
+from tab_switch_detector import TabSwitchDetector
 
 
 def _get_frontmost_app_name_mac() -> Optional[str]:
@@ -48,21 +49,53 @@ class DistractorApp:
     def __init__(self) -> None:
         self.root = tk.Tk()
         self.root.title("NGMI Distractor")
-        self.root.geometry("480x280")
+        self.root.geometry("480x320")
         self.manager = WindowsManager(self.root)
         self.number_game = NumberGame(self.manager)
+        
+        # Initialize tab switch detector
+        self.tab_detector = TabSwitchDetector(on_tab_switch=self._on_tab_switch)
 
         # Basic control panel
         tk.Label(self.root, text="NGMI Distractor", font=("Helvetica", 18, "bold")).pack(pady=8)
         self.status_var = tk.StringVar(value="Ready to distract…")
         tk.Label(self.root, textvariable=self.status_var).pack(pady=4)
 
+        # Main buttons
         buttons = tk.Frame(self.root)
         buttons.pack(pady=8)
         tk.Button(buttons, text="Meme Now", command=self.trigger_meme_distraction).grid(row=0, column=0, padx=6)
         tk.Button(buttons, text="NGMI Editor Now", command=self.trigger_ngmi_distraction).grid(row=0, column=1, padx=6)
         tk.Button(buttons, text="Number Game", command=self.trigger_number_game).grid(row=0, column=2, padx=6)
         tk.Button(buttons, text="Open Media", command=open_random_media).grid(row=0, column=3, padx=6)
+        
+        # Tab monitoring controls
+        tab_frame = tk.Frame(self.root)
+        tab_frame.pack(pady=8)
+        
+        tk.Label(tab_frame, text="Tab Monitoring:", font=("Helvetica", 12, "bold")).pack()
+        
+        tab_buttons = tk.Frame(tab_frame)
+        tab_buttons.pack(pady=4)
+        
+        self.tab_monitor_btn = tk.Button(
+            tab_buttons, 
+            text="🔍 Start Tab Monitor", 
+            command=self.toggle_tab_monitoring,
+            bg='#9146FF',
+            fg='white',
+            font=("Helvetica", 10, "bold")
+        )
+        self.tab_monitor_btn.pack(side='left', padx=5)
+        
+        tk.Button(
+            tab_buttons, 
+            text="🚀 Speed Stream Now", 
+            command=self.trigger_kai_cenat_popup,
+            bg='#00D4AA',
+            fg='white',
+            font=("Helvetica", 10, "bold")
+        ).pack(side='left', padx=5)
 
         self.root.protocol("WM_DELETE_WINDOW", self._on_exit)
 
@@ -117,10 +150,32 @@ class DistractorApp:
     def trigger_number_game(self) -> None:
         self.status_var.set("Number game dispatched…")
         self.number_game.start()
+        
+    def toggle_tab_monitoring(self) -> None:
+        """Toggle tab monitoring on/off."""
+        if self.tab_detector.is_monitoring():
+            self.tab_detector.stop_monitoring()
+            self.tab_monitor_btn.config(text="🔍 Start Tab Monitor", bg='#9146FF')
+            self.status_var.set("Tab monitoring stopped…")
+        else:
+            self.tab_detector.start_monitoring(check_interval=2.0)
+            self.tab_monitor_btn.config(text="🛑 Stop Tab Monitor", bg='#FF6B6B')
+            self.status_var.set("Tab monitoring started - Speed stream popups on tab switch!")
+            
+    def trigger_kai_cenat_popup(self) -> None:
+        """Manually trigger speed stream popup."""
+        self.status_var.set("Speed stream popup dispatched…")
+        self.tab_detector._trigger_kai_cenat_popup()
+        
+    def _on_tab_switch(self, tabs) -> None:
+        """Handle tab switch detection."""
+        self.status_var.set(f"Tab switch detected! {len(tabs)} tabs open…")
+        print(f"🔄 Tab switch detected! {len(tabs)} tabs currently open")
 
     # ---------------------------- Exit ---------------------------- #
     def _on_exit(self) -> None:
         try:
+            self.tab_detector.stop_monitoring()
             self.manager.close_all()
         finally:
             self.root.destroy()
