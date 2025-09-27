@@ -16,8 +16,8 @@ def open_meme_popup(
     """Open a popup displaying a GIF/image. Clicking triggers callback."""
     window_id, win = manager.create_window(
         title="Meme",
-        width=420,
-        height=360,
+        width=600,
+        height=500,
         window_type="meme_popup",
         topmost=True,
         resizable=True,
@@ -45,10 +45,16 @@ def open_meme_popup(
 
     def _load_image() -> None:
         try:
-            resp = requests.get(image_url, timeout=8)
-            resp.raise_for_status()
-            data = io.BytesIO(resp.content)
-            img = Image.open(data)
+            # Check if it's a local file or URL
+            if image_url.startswith(('http://', 'https://')):
+                # Online URL
+                resp = requests.get(image_url, timeout=8)
+                resp.raise_for_status()
+                data = io.BytesIO(resp.content)
+                img = Image.open(data)
+            else:
+                # Local file
+                img = Image.open(image_url)
 
             # Extract frames for GIFs
             try:
@@ -64,6 +70,19 @@ def open_meme_popup(
             if not frames:
                 frames.append(ImageTk.PhotoImage(img))
                 durations.append(200)
+
+            # Auto-resize window to fit image
+            img_width, img_height = img.size
+            max_width, max_height = 800, 600
+            if img_width > max_width or img_height > max_height:
+                # Scale down if too large
+                scale = min(max_width/img_width, max_height/img_height)
+                new_width = int(img_width * scale)
+                new_height = int(img_height * scale)
+                win.geometry(f"{new_width}x{new_height}")
+            else:
+                # Use image size if reasonable
+                win.geometry(f"{img_width}x{img_height}")
 
             status.pack_forget()
             _play_frames(0)
