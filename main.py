@@ -5,10 +5,10 @@ import tkinter as tk
 from typing import Optional
 
 from windows_manager import WindowsManager
-from ngmi_popup import open_ngmi_editor
-from meme_popup import open_meme_popup
-from media_link_opener import open_random_media
-from number_game import NumberGame
+from processes.ngmi_popup import open_ngmi_editor
+from processes.meme_popup import open_meme_popup
+from processes.media_link_opener import open_random_media
+from processes.number_game import NumberGame
 
 
 def _get_frontmost_app_name_mac() -> Optional[str]:
