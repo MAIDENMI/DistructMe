@@ -110,7 +110,7 @@ class DistractorApp:
         # Light heuristic: if user is in Chrome or a code editor, increase chance of heavier distraction
         heavy_weight = 0.6 if (front_app and any(k in front_app.lower() for k in ["chrome", "code", "cursor"])) else 0.35
         choices = [self.trigger_meme_distraction, self.trigger_ngmi_distraction]
-        weights = [0.5, 0.3, heavy_weight]
+        weights = [0.5, 0.3]
         # Normalize weights
         s = sum(weights)
         weights = [w / s for w in weights]
