@@ -3,7 +3,8 @@ name = "ngmi"
 version = "0.1.0"
 description = ""
 authors = [
-    {name = "Kevin",email = "kevin31422005@gmail.com"}
+    {name = "Kevin",email = "kevin31422005@gmail.com"},
+    {name = "Aayush Sapkota",email = "aayushsapkota1030@gmail.com"}
 ]
 readme = "README.md"
 requires-python = ">=3.13"
