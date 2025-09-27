@@ -8,7 +8,6 @@ from windows_manager import WindowsManager
 from processes.ngmi_popup import open_ngmi_editor
 from processes.meme_popup import open_meme_popup
 from processes.media_link_opener import open_random_media
-from processes.number_game import SmileyGame
 from tab_switch_detector import TabSwitchDetector
 
 
@@ -51,7 +50,7 @@ class DistractorApp:
         self.root.title("NGMI Distractor")
         self.root.geometry("480x320")
         self.manager = WindowsManager(self.root)
-        self.number_game = SmileyGame(self.manager)
+        # self.number_game = SmileyGame(self.manager)
         
         # Initialize tab switch detector
         self.tab_detector = TabSwitchDetector(on_tab_switch=self._on_tab_switch)
@@ -66,7 +65,6 @@ class DistractorApp:
         buttons.pack(pady=8)
         tk.Button(buttons, text="Meme Now", command=self.trigger_meme_distraction).grid(row=0, column=0, padx=6)
         tk.Button(buttons, text="NGMI Editor Now", command=self.trigger_ngmi_distraction).grid(row=0, column=1, padx=6)
-        tk.Button(buttons, text="Number Game", command=self.trigger_number_game).grid(row=0, column=2, padx=6)
         tk.Button(buttons, text="Open Media", command=open_random_media).grid(row=0, column=3, padx=6)
         
         # Tab monitoring controls
@@ -111,7 +109,7 @@ class DistractorApp:
         front_app = _get_frontmost_app_name_mac()
         # Light heuristic: if user is in Chrome or a code editor, increase chance of heavier distraction
         heavy_weight = 0.6 if (front_app and any(k in front_app.lower() for k in ["chrome", "code", "cursor"])) else 0.35
-        choices = [self.trigger_meme_distraction, self.trigger_ngmi_distraction, self.trigger_number_game]
+        choices = [self.trigger_meme_distraction, self.trigger_ngmi_distraction]
         weights = [0.5, 0.3, heavy_weight]
         # Normalize weights
         s = sum(weights)
@@ -137,19 +135,12 @@ class DistractorApp:
             open_random_media()
             # Also spawn an NGMI editor shortly after
             self.root.after(1200, self.trigger_ngmi_distraction)
-            # Potentially kick off the number game as well
-            if random.random() < 0.5:
-                self.root.after(2000, self.trigger_number_game)
 
         open_meme_popup(self.manager, url, on_click)
 
     def trigger_ngmi_distraction(self) -> None:
         self.status_var.set("NGMI editor dispatched…")
         open_ngmi_editor(self.manager, refresh_interval_ms=random.randint(2500, 5000), editable=True)
-
-    def trigger_number_game(self) -> None:
-        self.status_var.set("Number game dispatched…")
-        self.number_game.start()
         
     def toggle_tab_monitoring(self) -> None:
         """Toggle tab monitoring on/off."""
