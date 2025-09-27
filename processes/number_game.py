@@ -8,7 +8,7 @@ sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from windows_manager import WindowsManager
 
 
-class NumberGame:
+class SmileyGame:
     def __init__(self, manager: WindowsManager) -> None:
         self.manager = manager
         self.active_ids: List[str] = []
@@ -17,15 +17,13 @@ class NumberGame:
     def start(self) -> None:
         if self.active_ids:
             return  # already running
-        self.mode = 6
-        self._spawn_number_six()
+        self.mode = "smiley"
+        self._spawn_smiley_face()
 
     def _on_child_closed(self, window_id: str) -> None:
         if window_id in self.active_ids:
             self.active_ids.remove(window_id)
-        if not self.active_ids:
-            # All closed, switch to 7
-            self._show_seven_window()
+        # Don't do anything when windows are closed - just let them disappear
 
     def _spawn_window(self, title: str, x: int, y: int, w: int, h: int) -> None:
         child_id, win = self.manager.create_window(
@@ -39,59 +37,58 @@ class NumberGame:
             resizable=False,
             on_close=self._on_child_closed,
         )
-        tk.Label(win, text=title, font=("Helvetica", 12, "bold")).pack(pady=4)
+        tk.Label(win, text=title, font=("Helvetica", 24, "bold")).pack(pady=8)
         self.active_ids.append(child_id)
 
-    def _spawn_number_six(self) -> None:
+    def _spawn_smiley_face(self) -> None:
         sw, sh = self.manager.get_screen_size()
-        # Define a grid and place rectangles to approximate a "6"
-        grid_w = 7
-        grid_h = 7
-        cell_w = max(80, sw // (grid_w + 4))
-        cell_h = max(60, sh // (grid_h + 6))
-        start_x = cell_w
-        start_y = cell_h
+        # Define a grid to create a smiley face
+        grid_w = 9
+        grid_h = 9
+        # Make cells much larger - use about 60% of screen space
+        cell_w = max(120, sw // (grid_w + 2))
+        cell_h = max(100, sh // (grid_h + 2))
+        start_x = sw // 2 - (grid_w * cell_w) // 2
+        start_y = sh // 2 - (grid_h * cell_h) // 2
 
-        coords: List[Tuple[int, int]] = []
-        # Outer loop of "6"
-        for x in range(1, 6):
-            coords.append((x, 1))
-        for y in range(1, 6):
-            coords.append((1, y))
-        for x in range(1, 6):
-            coords.append((x, 5))
-        # inner tail
-        for y in range(3, 6):
-            coords.append((4, y))
-        for x in range(2, 5):
-            coords.append((x, 3))
+        coords: List[Tuple[int, int, str]] = []
+        
+        # Face outline (circle)
+        face_coords = [
+            (2, 1), (3, 1), (4, 1), (5, 1), (6, 1),
+            (1, 2), (7, 2),
+            (0, 3), (8, 3),
+            (0, 4), (8, 4),
+            (0, 5), (8, 5),
+            (1, 6), (7, 6),
+            (2, 7), (3, 7), (4, 7), (5, 7), (6, 7)
+        ]
+        
+        # Left eye
+        left_eye = [ (3, 3)]
+        
+        # Right eye  
+        right_eye = [(5, 3)]
+        
+        # Smile
+        smile = [(2, 5), (3, 6), (4, 6), (5, 6), (6, 5)]
+        
+        # Add all coordinates with labels
+        for x, y in face_coords:
+            coords.append((x, y, "😊"))
+        for x, y in left_eye:
+            coords.append((x, y, "👁"))
+        for x, y in right_eye:
+            coords.append((x, y, "👁"))
+        for x, y in smile:
+            coords.append((x, y, "😄"))
 
-        # Deduplicate
-        coords = sorted(set(coords))
-
-        for gx, gy in coords:
+        for gx, gy, emoji in coords:
             px = start_x + gx * cell_w
             py = start_y + gy * cell_h
-            self._spawn_window("6", px, py, cell_w - 20, cell_h - 20)
+            self._spawn_window(emoji, px, py, cell_w - 20, cell_h - 20)
 
-    def _show_seven_window(self) -> None:
-        # Single celebratory 7 window
-        sw, sh = self.manager.get_screen_size()
-        x = sw // 2 - 150
-        y = sh // 2 - 100
-        child_id, win = self.manager.create_window(
-            title="7",
-            width=300,
-            height=200,
-            x=x,
-            y=y,
-            window_type="number_game",
-            topmost=True,
-            resizable=False,
-            on_close=lambda _id: None,
-        )
-        tk.Label(win, text="7", font=("Helvetica", 72, "bold")).pack(expand=True)
-        self.active_ids = [child_id]
+
 
 
 if __name__ == "__main__":
@@ -118,7 +115,7 @@ if __name__ == "__main__":
     root.withdraw()  # Hide main window
 
     manager = DummyManager()
-    game = NumberGame(manager)
+    game = SmileyGame(manager)
     game.start()
 
     tk.mainloop()
